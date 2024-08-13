@@ -1,85 +1,184 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="container">
+    <!-- Sign Up -->
+    <section>
+      <h3 class="mb-4">註冊</h3>
+      <div class="row">
+        <div class="col-3">
+          <div class="mb-3">
+            <input
+              type="email"
+              class="form-control"
+              placeholder="Email"
+              v-model="signUpField.email"
+            />
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="mb-3">
+            <input
+              type="password"
+              class="form-control"
+              placeholder="Password"
+              v-model="signUpField.password"
+            />
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Nick Name"
+              v-model="signUpField.nickname"
+            />
+          </div>
+        </div>
+        <div class="col-3">
+          <button type="button" class="btn btn-primary" @click="signUpPost">Sign Up</button>
+        </div>
+      </div>
+      {{ signUpField }}
+      <h4>UID:{{ signUpUID }}</h4>
+    </section>
+    <hr />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <!-- Sign In -->
+    <section>
+      <h3 class="mb-4">登入</h3>
+      <div class="row">
+        <div class="col-3">
+          <div class="mb-3">
+            <input
+              type="email"
+              class="form-control"
+              placeholder="Email"
+              v-model="signInField.email"
+            />
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="mb-3">
+            <input
+              type="password"
+              class="form-control"
+              placeholder="Password"
+              v-model="signInField.password"
+            />
+          </div>
+        </div>
+        <div class="col-3">
+          <button type="button" class="btn btn-primary" @click="signInPost">Sign In</button>
+        </div>
+      </div>
+      {{ signInField }}
+      <h4>TOKEN:{{ signInToken }}</h4>
+      <h4>EXP:{{ signInEXP }}</h4>
+    </section>
+    <hr />
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+    <!-- Check Out -->
+    <section>
+      <h3 class="mb-4">驗證</h3>
+      <div class="mb-3">
+        <div v-if="checkUser.uid">
+          <h4>Hello!{{ checkUser.nickname }}!</h4>
+          <h4>UID:{{ checkUser.uid }}</h4>
+        </div>
+        <div v-else>您還沒有登入喔～</div>
+      </div>
+    </section>
+    <hr />
+    <!-- Check Out -->
+    <section>
+      <h3 class="mb-4">登出</h3>
+      <div class="row">
+        <div class="col-3">
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="formGroupExampleInput"
+              placeholder="Token"
+            />
+          </div>
+        </div>
+        <div class="col-3">
+          <button type="button" class="btn btn-primary">Sign Out</button>
+        </div>
+      </div>
+    </section>
 
-  <RouterView />
+    <h1>TODO LIST</h1>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<script setup>
+import axios from 'axios'
+import { onMounted, ref } from 'vue'
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+const apiURL = 'https://todolist-api.hexschool.io'
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
+//驗證
+const checkUser = ref({
+  nickname: '',
+  uid: ''
+})
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
+onMounted(async () => {
+  const myCookie = document.cookie.replace(
+    /(?:(?:^|.*;\s*)customToken\s*\=\s*([^;]*).*$)|^.*$/,
+    '$1'
+  )
+  // console.log(myCookie)
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
+  const res = await axios.get(`${apiURL}/users/checkout`, {
+    headers: {
+      Authorization: myCookie
+    }
+  })
+  checkUser.value = res.data
+  // console.log(checkUser.value)
+})
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
+//登入
 
-nav a:first-of-type {
-  border: 0;
-}
+const signInField = ref({
+  email: '',
+  password: ''
+})
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
+const signInToken = ref('')
+const signInEXP = ref('')
+const signInPost = async () => {
+  try {
+    const res = await axios.post(`${apiURL}/users/sign_in`, signInField.value)
+    console.log(res)
+    signInToken.value = res.data.token
+    signInEXP.value = res.data.exp
+    document.cookie = `customToken=${res.data.token}; expires=${res.data.exp}; path=/`
+  } catch (error) {
+    console.log(error)
   }
 }
-</style>
+
+//註冊
+const signUpField = ref({
+  email: '',
+  password: '',
+  nickname: ''
+})
+const signUpUID = ref('')
+
+// console.log(signUpField)
+const signUpPost = async () => {
+  // console.log(res)
+  try {
+    const res = await axios.post(`${apiURL}/users/sign_up`, signUpField.value)
+    console.log(res)
+    signUpUID.value = res.data.uid
+  } catch (error) {
+    console.log(error)
+  }
+}
+</script>
