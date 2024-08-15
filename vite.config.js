@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/npm run deploy/',
+  base: '/week02homework/',
   plugins: [vue()],
   resolve: {
     alias: {
