@@ -1,0 +1,25 @@
+.todoList {
+    padding-top: 1em;
+
+    li {
+        list-style: none;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 1em;
+        padding-bottom: 1em;
+
+        &>div {
+            display: flex;
+            justify-content: start;
+
+            input {
+                margin-right: .35em;
+            }
+
+            label {
+                width: 40%;
+            }
+
+        }
+
+    }
+}
